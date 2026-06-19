@@ -1,172 +1,8 @@
-// import React, { useEffect, useState } from 'react'
-// import {useParams, Link, useNavigate} from 'react-router-dom'
-// import { ArrowLeft, MoveLeft, Pencil, Users , X} from 'lucide-react'
-// import axios from 'axios'
-
-// function AddExpense() {
-
-//     let {groupId} = useParams()
-//     let [paidBy, setPaidBy] = useState()
-//     let token = localStorage.getItem('token')
-//     let [users, setUsers] = useState([])
-//     let [contributors, setContributors] = useState([])
-//     let [splitType, setSplitType] = useState()
-//     let [isPercentage, setIsPercentage] = useState(false)
-//     let [percentages, setPercentages] = useState({})
-//     let [totalAmount, setTotalAmount] = useState()
-
-
-
-//     let getUsers = async () =>{
-//         try{
-//             let allUsersResponseInFrontend = await axios.get('http://localhost:3000/users/', {
-//                 headers:{
-//                     Authorization : `Bearer ${token}`
-//                 }
-//             })
-
-//             setUsers(allUsersResponseInFrontend.data)
-//         }catch(err){
-//             console.log("error getting all users", err)
-//         }
-//     }
-
-//     let addExpenseFunc = async (e) =>{
-//         console.log(percentages)
-//         console.log(totalAmount)
-//         console.log(contributors)
-//         console.log(paidBy)
-//         try{
-//             let expenseSentToBackend = await axios.post('http://localhost:3000/expenses/add', 
-//             {
-//                 "paidBy":paidBy,
-//                 "totalAmount":totalAmount,
-//                 "contributors":contributors,
-//                 "percentages":percentages
-//             }, 
-//             {
-//                 headers:{
-//                     Authorization:`Bearer ${token}`
-//                 }
-//             })
-
-//             console.log(expenseSentToBackend.data)
-//         }catch(err){
-//             console.log("err", err)
-//         }
-//     }
-
-
-//     let selectContributor = async (e, user) =>{
-//         e.preventDefault()
-//         if(!contributors.includes(user.username)){
-//             setContributors([...contributors, user.username])
-//         }else{
-//             let filteredContributors = contributors.filter((contributors, index)=>{
-//                 return contributors != user.username
-//             })
-
-//             setContributors(filteredContributors)
-//             console.log(contributors)
-//         }
-//     }
-
-//     useEffect(()=>{
-//         getUsers()
-//     }, [])
-
-//   return (
-//     <div className='ml-60'>
-//         <Link to={`/groups/${groupId}`}> <ArrowLeft/>Back</Link>
-//         <div>
-//             <label htmlFor="">Subject</label>
-//             <input type="text" className='border border-black'/>
-//         </div>
-//         <div>
-//             <label htmlFor="">Total Amount</label>
-//             <input type="text" className='border border-black' onChange={(e)=>setTotalAmount(e.target.value)}/>
-//         </div>
-
-//         <div>
-
-//             <div className='flex gap-2'>
-//                 <p>PaidBy</p>
-//                 {users.map((user, index)=>{
-//                     return <div key={user.username} className='flex gap-4'>
-//                         <button className={`cursor-pointer ${paidBy == user.username ? "text-red-700" : ""}`} onClick={(e)=>{
-//                             setPaidBy(user.username)
-//                             setContributors([...contributors, user.username])
-//                             setPercentages({...percentages, [user.username]:totalAmount})
-//                         }}>{user.username}</button>
-//                     </div>
-//                 })}
-//             </div>
-
-//             <p>Select Contributors</p>
-
-//             {users.filter((user, index)=>{
-//                 return user.username != paidBy
-//             }).map((user, index)=>{
-//                 return <div key={user.username} className={`flex gap-4`}>
-//                     {user.username}
-//                     <button onClick={(e)=>{selectContributor(e, user)}}>{contributors.includes(user.username) ? "Remove" : "Add"}</button>
-//                     {/* <button onClick={(e)=>{selectContributor(e, user)}}>Add</button> */}
-//                 </div>
-//             })}
-
-//         </div>
-
-        
-
-//         <div className='flex gap-4'>
-//             <p>Splitting type</p>
-//             <button onClick={(e)=>{
-//                 setSplitType("Equal")
-//                 setIsPercentage(false)
-
-//             }} className={`cursor-pointer ${splitType == "Equal" ? "text-red-700" : ""}`}>Equal</button>
-//             <button onClick={(e)=>{
-//                 setSplitType("Percentage")
-//                 setIsPercentage(true)
-//             }} className={`cursor-pointer ${splitType == "Percentage" ?"text-red-700" : ""}`}>Percentage</button>
-//         </div>
-
-//         {
-//             isPercentage && 
-//             <div>
-
-//                 {contributors.filter((contribor)=>{
-//                     return contribor != paidBy
-//                 })
-//                 .map((contributor, index)=>{
-//                     return <div key={contributor} className={`flex gap-4 ${paidBy === contributor ? "none": ""}`}>
-//                         <p className={`cursor-pointer ${paidBy == contributor ? "text-red-700" : ""}`} onClick={(e)=>setPaidBy(contributor)}>{contributor}</p>
-//                         <input type="text" className='border border-black' onChange={(e)=>{
-//                             setPercentages({...percentages, 
-//                                 [contributor]:e.target.value
-//                             })
-
-//                             console.log(percentages)
-//                         } }/>
-//                 </div>
-//                 })}
-
-//             </div>
-//         }
-
-//         <button onClick={(e)=>addExpenseFunc(e)}>Add Expense</button>
-//     </div>
-//   )
-// }
-
-// export default AddExpense
-
-
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import {Link, useParams} from 'react-router-dom'
 import { useNavigate } from 'react-router-dom'
-import {ArrowLeft, X} from 'lucide-react'
+import {ArrowLeft, X, Check} from 'lucide-react'
 import toast from 'react-hot-toast'
 
 function AddExpense() {
@@ -183,10 +19,6 @@ function AddExpense() {
     let [expenseDescription, setExpenseDescription] = useState("")
 
     let navigate = useNavigate()
-
-
-
-    
 
     let selectContributor = async (e, user)=>{
         e.preventDefault()
@@ -258,148 +90,203 @@ function AddExpense() {
         }
     }
 
+    const splitTypeOptions = ["Equal", "Value Based", "Percentage"]
 
+    const selectSplitType = (type) =>{
+        setSplitType(type)
+
+        if(type === "Equal"){
+            let newPercentages = {}
+            contributors.forEach((contributor)=>{
+                newPercentages[contributor] = 100/contributors.length
+            })
+            setPercentages(newPercentages)
+        }
+    }
 
   return (
-    <div className='ml-60 flex flex-col justify-center items-center min-h-screen overflow-scroll '>
+    <div className='bg-[#f7f9fc] min-h-screen md:ml-60'>
+        <div className='px-6 md:px-10 py-8 max-w-5xl mx-auto'>
 
-        <div className='bg-[#eef3ff] ml-6 w-[90%] rounded-xl p-6 border-[#1d4ed8]/20 border-2'>
+            <div className='bg-white rounded-2xl border border-[#1d4ed8]/10 shadow-sm p-6 md:p-8'>
 
-        <div className='flex justify-between items-center mb-4'>
-           <div>
-             <p className='text-4xl font-bold text-[#1d4ed8] mb-2'>Add An Expense!</p>
-            <p className='text-gray-600 my-1 text-md'>Kindly Fill The Below Inputs In Order</p>
-           </div>
-
-           <div className='text-white bg-red-600 px-1 py-[2px] cursor-pointer flex justify-center items-center hover:bg-red-600/30' onClick={(e)=>{
-            navigate(`/groups/${groupId}`)}}>
-            Discard<X/>
-           </div>
-        </div>
-
-
-        {/* div with left and right */}
-        <div className='flex flex-row justify-center gap-10 items-start mt-2'>
-
-            {/* left wala part */}
-            <div>
-                <div className='flex items-center'>
-                    <p className='w-50'>Expense Name : </p>
-                    <input type="text" className='w-80 px-2 py-1 bg-white border border-[#1e2230]/20 rounded-lg text-[#1e2230] placeholder:text-[#1e2230]/40 outline-none  focus:border-[#1d4ed8]
-                    transition' value={expenseName} onChange={(e)=> setExpenseName(e.target.value)}/>
-                </div>
-
-            <div className='flex  items-start mt-5'>
-                <p className='w-50'>Expense Description : </p>
-                <textarea className='w-80 h-62 px-2 py-1 bg-white border border-[#1e2230]/20 rounded-lg text-[#1e2230] placeholder:text-[#1e2230]/40 focus:outline-none  focus:border-[#1d4ed8]
-                transition' value={expenseDescription} onChange={(e)=> setExpenseDescription(e.target.value)} placeholder=''/>
-            </div>
-
-
-            <div className='flex  items-center mt-5'>
-                <p className='w-50'>Total Amount : </p>
-                <input type="text" className='w-80 px-2 py-1 bg-white border border-[#1e2230]/20 rounded-lg text-[#1e2230] placeholder:text-[#1e2230]/40 focus:outline-none  focus:border-[#1d4ed8]
-                transition' value={totalAmount} onChange={(e)=> setTotalAmount(e.target.value)}/>
-            </div>
-
-            <div className='flex mt-5 '>
-                <p className='w-50'>Paid By : </p>
-
-                <div className='flex flex-wrap gap-3'> 
-                {users.map((user, index)=>{
-                    return <button onClick={(e)=>{
-                        setPaidBy(user.username)
-                    }} className={` cursor-pointer ${user.username == paidBy ? "text-blue-700": "text-gray-500"}`} key={user._id}>{user.username}</button>
-                })}
-                </div>
-            </div>
-            </div>
-
-            {/* right wala part */}
-
-        <div>
-        <div className=''>
-            <p className='mb-4'>Select Contributors  : <br/>(Including User Who Has Paid)</p>
-            
-            <div className='bg-white overflow-auto w-80 flex flex-col justify-center items-center py-4'>
-                {users.map((user, index)=>{
-                    return <div className='flex gap-2 bg-blue-100 my-1 p-2 rounded justify-between items-center w-75' key={user._id}>
-                        <p>{index+1}.                                                {user.username}</p>
-                        <button onClick={(e)=>selectContributor(e, user)} className={`cursor-pointer text-white px-1 py-1 rounded ${!contributors.includes(user.username) ? "bg-blue-700" : "bg-red-600"}`}>{contributors.includes(user.username) ? "Remove" : "Add"}</button>
+                <div className='flex justify-between items-start mb-8'>
+                    <div>
+                        <Link className='flex items-center gap-1.5 text-gray-500 hover:text-[#1d4ed8] transition-colors w-fit text-sm mb-4' to={`/groups/${groupId}`}>
+                            <ArrowLeft size={15}/>Back to Group
+                        </Link>
+                        <p className='text-3xl md:text-4xl font-bold text-[#1d4ed8] mb-1.5'>Add An Expense</p>
+                        <p className='text-gray-500 text-[15px]'>Fill in the details below to split a new expense.</p>
                     </div>
-                })}
-            </div>
-        </div>
 
-        <div className='flex gap-3 mt-8'>
-            <p>Split type : </p>
-            <button onClick={(e)=>{
-                setSplitType("Equal")
-
-                let newPercentages = {}
-                contributors.forEach((contributor, index)=>{
-                    newPercentages[contributor] = 100/contributors.length
-                })
-
-                setPercentages(newPercentages)
-
-
-            }}  className={` ${splitType == "Equal" ? "text-blue-700" : "text-gray-500"} cursor-pointer`}>Equal</button>
-            <button onClick={(e)=>{setSplitType("Value Based")}} className={` ${splitType == "Value Based" ? "text-blue-700" : "text-gray-500"} cursor-pointer`}>Value Based</button>
-            <button onClick={(e)=>{setSplitType("Percentage")}} className={`  ${splitType == "Percentage" ? "text-blue-700" : "text-gray-500"} cursor-pointer`}>Percentage</button>
-        </div>
-
-
-        {splitType == "Equal" && 
-        
-            <div className='my-4'>
-                       
-            </div>
-        }
-        {splitType == "Percentage" && 
-        
-            <div className='my-4'>
-            {contributors.map((contributor, index)=>{
-                return <div className='flex gap-2 items-center mt-2' key={index}>
-                    <p className='w-18'>{contributor}</p>
-                    <input type="number" className='px-2 py-1 bg-white border border-[#1e2230]/20 rounded-lg text-[#1e2230] placeholder:text-[#1e2230]/40 focus:outline-none  focus:border-[#1d4ed8]
-                    transition'   onChange={(e)=>{
-                        setPercentages({...percentages, [contributor]:e.target.value})
-                    }} />
+                    <button
+                        className='text-red-600 bg-red-50 border border-red-200 px-4 py-2 rounded-lg cursor-pointer flex justify-center items-center gap-1.5 text-sm font-medium hover:bg-red-100 transition-colors shrink-0'
+                        onClick={()=> navigate(`/groups/${groupId}`)}
+                    >
+                        Discard <X size={15}/>
+                    </button>
                 </div>
-            })}            
-            </div>
-        }
 
+                {/* form grid — two equal columns that each fill their half */}
+                <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
 
-        {splitType == "Value Based" && 
-        
-            <div className='my-4'>
-            {contributors.map((contributor, index)=>{
-                return <div className='flex gap-2 items-center mt-2' key={index}>
-                    <p className='w-18'>{contributor}</p>
-                    <input type="number" className='px-2 py-1 bg-white border border-[#1e2230]/20 rounded-lg text-[#1e2230] placeholder:text-[#1e2230]/40 focus:outline-none  focus:border-[#1d4ed8]
-                    transition' onChange={(e)=>{
-                        setPercentages({...percentages, [contributor]:e.target.value*100/totalAmount})
-                    }} />
+                    {/* left column */}
+                    <div className='flex flex-col gap-5'>
+                        <div className='flex flex-col gap-1.5'>
+                            <label className='text-sm font-medium text-gray-600'>Expense Name</label>
+                            <input
+                                type="text"
+                                placeholder='e.g. Dinner at Olive Garden'
+                                className='w-full px-3 py-2.5 bg-[#f7f9fc] border border-[#1e2230]/15 rounded-lg text-[#1e2230] placeholder:text-[#1e2230]/40 outline-none focus:border-[#1d4ed8] transition'
+                                value={expenseName}
+                                onChange={(e)=> setExpenseName(e.target.value)}
+                            />
+                        </div>
+
+                        <div className='flex flex-col gap-1.5'>
+                            <label className='text-sm font-medium text-gray-600'>Expense Description</label>
+                            <textarea
+                                className='w-full h-40 px-3 py-2.5 bg-[#f7f9fc] border border-[#1e2230]/15 rounded-lg text-[#1e2230] placeholder:text-[#1e2230]/40 outline-none focus:border-[#1d4ed8] transition resize-none'
+                                placeholder='Add any notes about this expense...'
+                                value={expenseDescription}
+                                onChange={(e)=> setExpenseDescription(e.target.value)}
+                            />
+                        </div>
+
+                        <div className='flex flex-col gap-1.5'>
+                            <label className='text-sm font-medium text-gray-600'>Total Amount</label>
+                            <input
+                                type="text"
+                                placeholder='0.00'
+                                className='w-full px-3 py-2.5 bg-[#f7f9fc] border border-[#1e2230]/15 rounded-lg text-[#1e2230] placeholder:text-[#1e2230]/40 outline-none focus:border-[#1d4ed8] transition'
+                                value={totalAmount}
+                                onChange={(e)=> setTotalAmount(e.target.value)}
+                            />
+                        </div>
+
+                        <div className='flex flex-col gap-1.5'>
+                            <label className='text-sm font-medium text-gray-600'>Paid By</label>
+                            <div className='flex flex-wrap gap-2'>
+                                {users.map((user)=>(
+                                    <button
+                                        key={user._id}
+                                        onClick={()=> setPaidBy(user.username)}
+                                        className={`cursor-pointer text-sm font-medium px-3.5 py-1.5 rounded-full border transition-colors ${
+                                            user.username === paidBy
+                                                ? "bg-[#1d4ed8] text-white border-[#1d4ed8]"
+                                                : "bg-white text-gray-600 border-[#1e2230]/15 hover:border-[#1d4ed8]/40"
+                                        }`}
+                                    >
+                                        {user.username}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className='flex flex-col gap-1.5'>
+                            <label className='text-sm font-medium text-gray-600'>Split Type</label>
+                            <div className='flex flex-wrap gap-2'>
+                                {splitTypeOptions.map((type)=>(
+                                    <button
+                                        key={type}
+                                        onClick={()=> selectSplitType(type)}
+                                        className={`cursor-pointer text-sm font-medium px-3.5 py-1.5 rounded-full border transition-colors ${
+                                            splitType === type
+                                                ? "bg-[#1d4ed8] text-white border-[#1d4ed8]"
+                                                : "bg-white text-gray-600 border-[#1e2230]/15 hover:border-[#1d4ed8]/40"
+                                        }`}
+                                    >
+                                        {type}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {splitType === "Percentage" && contributors.length > 0 &&
+                            <div className='flex flex-col gap-1.5'>
+                                <label className='text-sm font-medium text-gray-600'>Percentage Split</label>
+                                <div className='bg-[#f7f9fc] border border-[#1e2230]/15 rounded-lg p-3 flex flex-col gap-2.5'>
+                                    {contributors.map((contributor, index)=>(
+                                        <div className='flex justify-between items-center gap-3' key={index}>
+                                            <p className='text-sm text-gray-700'>{contributor}</p>
+                                            <div className='flex items-center gap-1.5 w-28'>
+                                                <input
+                                                    type="number"
+                                                    className='w-full px-2.5 py-1.5 bg-white border border-[#1e2230]/15 rounded-lg text-[#1e2230] outline-none focus:border-[#1d4ed8] transition text-sm'
+                                                    onChange={(e)=> setPercentages({...percentages, [contributor]:e.target.value})}
+                                                />
+                                                <span className='text-sm text-gray-400'>%</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        }
+
+                        {splitType === "Value Based" && contributors.length > 0 &&
+                            <div className='flex flex-col gap-1.5'>
+                                <label className='text-sm font-medium text-gray-600'>Amount Split</label>
+                                <div className='bg-[#f7f9fc] border border-[#1e2230]/15 rounded-lg p-3 flex flex-col gap-2.5'>
+                                    {contributors.map((contributor, index)=>(
+                                        <div className='flex justify-between items-center gap-3' key={index}>
+                                            <p className='text-sm text-gray-700'>{contributor}</p>
+                                            <input
+                                                type="number"
+                                                className='w-28 px-2.5 py-1.5 bg-white border border-[#1e2230]/15 rounded-lg text-[#1e2230] outline-none focus:border-[#1d4ed8] transition text-sm'
+                                                onChange={(e)=> setPercentages({...percentages, [contributor]:e.target.value*100/totalAmount})}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    {/* right column */}
+                    <div className='flex flex-col h-full'>
+                        <label className='text-sm font-medium text-gray-600 mb-1.5'>Select Contributors</label>
+                        <p className='text-xs text-gray-400 mb-3'>Includes the user who paid, if they're sharing the cost.</p>
+
+                        <div className='bg-[#f7f9fc] border border-[#1e2230]/15 rounded-lg p-3 flex flex-col gap-2 flex-1 overflow-auto'>
+                            {users.length === 0 &&
+                                <p className='text-gray-400 text-sm text-center py-6'>No members found in this group.</p>
+                            }
+                            {users.map((user, index)=>{
+                                const isSelected = contributors.includes(user.username)
+                                return (
+                                    <div
+                                        className='flex justify-between items-center bg-white border border-[#1e2230]/10 rounded-lg px-4 py-3'
+                                        key={user._id}
+                                    >
+                                        <div className='flex items-center gap-3'>
+                                            <span className='text-gray-400 text-sm w-5'>{index+1}.</span>
+                                            <span className='text-[#1e2230] font-medium'>{user.username}</span>
+                                        </div>
+                                        <button
+                                            onClick={(e)=> selectContributor(e, user)}
+                                            className={`cursor-pointer text-white text-sm font-medium px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors ${
+                                                isSelected ? "bg-red-600 hover:bg-red-700" : "bg-[#1d4ed8] hover:bg-[#1742b8]"
+                                            }`}
+                                        >
+                                            {isSelected ? <>Remove</> : <>Add <Check size={14}/></>}
+                                        </button>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
                 </div>
-            })}            
-            </div>
-        }
 
-        {/* <button onClick={(e)=>addExpense(e)} className='ml-6'>Add Expense</button> */}
-
-            <div className='flex justify-between items-center w-[110%]'>
-        <button className='flex justify-center items-center cursor-pointer text-white mt-4 bg-blue-700 px-3 py-[3.6px] rounded hover:bg-blue-700/40 mr-6 opacity-0'>Add Expense</button>
-        <button className='flex justify-center items-center cursor-pointer text-white mt-4 bg-blue-700 px-3 py-[3.6px] rounded hover:bg-blue-700/40 mr-6' onClick={(e)=>addExpense(e)}>Add Expense</button>
-
-            </div>
+                <div className='flex justify-end items-center mt-8 pt-6 border-t border-[#1d4ed8]/10'>
+                    <button
+                        className='flex justify-center items-center cursor-pointer text-white bg-[#1d4ed8] px-6 py-2.5 rounded-lg font-medium hover:bg-[#1742b8] transition-colors'
+                        onClick={(e)=> addExpense(e)}
+                    >
+                        Add Expense
+                    </button>
+                </div>
 
             </div>
-        </div>
-
-
-
         </div>
     </div>
   )
