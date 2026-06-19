@@ -71,24 +71,34 @@ function ViewGroup() {
     }
 
 
-    let minimumTransaction = async () =>{
-        
-        try{
-            let minimumTransaction = await axios.get(`http://localhost:3000/expenses/${groupId}/minimumTransaction?timeFilter=${timeFilter}&userFilter=${userFilter}`, 
+    let minimumTransaction = async () => {
+    try {
+        let res = await axios.get(
+            `http://localhost:3000/expenses/${groupId}/minimumTransaction?timeFilter=${timeFilter}&userFilter=${userFilter}`,
             {
-            headers:{
-                Authorization:`Bearer ${token}`
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             }
-        })
+        )
 
-        setNetbalanceOfUserInAGroup(minimumTransaction.data.minimumTransactionsInBackendForCurrentuser[0].totalAmount)
+        const data =
+            res.data?.minimumTransactionsInBackendForCurrentuser
+
+        // SAFE GUARD
+        const netBalance = data?.[0]?.totalAmount ?? 0
+
+        setNetbalanceOfUserInAGroup(netBalance)
+        setRecordOfTransactions(res.data?.recordOfTransactions || [])
         setIsloading(false)
-        setRecordOfTransactions(minimumTransaction.data.recordOfTransactions)
 
-        }catch(err){
-            console.log("error occured while finding minimum transactions frontend", err)
-        }
+    } catch (err) {
+        console.log("error occured while finding minimum transactions frontend", err)
+        setNetbalanceOfUserInAGroup(0)
+        setRecordOfTransactions([])
+        setIsloading(false)
     }
+}
 
     let fetchGroupInfo = async () =>{
         try{
