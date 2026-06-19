@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+body{
+  font-family: "Space Grotesk", sans-serif;
+  font-size: large;
+}
+
+*, body{
+  overscroll-behavior: none;
+  /* overflow-x: hidden; */
+}
+
+.profile{
+  /* background-image: url('/profileBackGround.png'); */
+}
