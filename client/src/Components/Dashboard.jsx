@@ -1,275 +1,291 @@
-import React from 'react'
-import { useState, useEffect } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
-import { ArrowRight, Info, X , ChevronLeft, ChevronRight} from 'lucide-react'
+import { ArrowRight, X, ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Wallet } from 'lucide-react'
 import { motion, AnimatePresence } from "framer-motion"
 import { useNavigate } from 'react-router-dom'
 
 function Dashboard() {
+  const [expenses, setExpenses] = useState([])
+  const [expensePopup, setExpensePopup] = useState(false)
+  const [currentExpense, setCurrentExpense] = useState(null)
+  const [totalExpenseOfAUserInOneExpense, setTotalExpenseOfAUserInOneExpense] = useState([])
+  const [minimumtransactionOfUserInAllExpenses, setMinimumtransactionOfUserInAllExpenses] = useState([])
+  const [amountOwedByUser, setAmountOwedByUser] = useState()
+  const [amountToBeRecievedByUserTotal, setAmountToBeRecievedByUserTotal] = useState()
+  const token = localStorage.getItem('token')
+  const [usernameOfCurrentUser, setUsernameOfCurrentUser] = useState("")
+  const [limit] = useState(5)
+  const navigate = useNavigate()
+  const [pagePart, setPage] = useState(1)
+  const [numberOfPages, setNumberOfPages] = useState(1)
 
-  let [expenses, setExpenses] = useState([])
-  let [expensePopup, setExpensePopup] = useState(false)
-  let [currentExpense, setCurrentExpense] = useState([]);
-  let [totalExpenseOfAUserInOneExpense, setTotalExpenseOfAUserInOneExpense] = useState([])
-        
-  let [minimumtransactionOfUserInAllExpenses, setminimumtransactionOfUserInAllExpenses] = useState([])
-        
-  let [amountOwedByUser, setAmountOwedByUser]=useState()
-  let [amountToBeRecievedByUserTotal, setAmountToBeRecievedByUserTotal]=useState()
-  let token = localStorage.getItem('token')
-  let [usernameOfCurrentUser, setUsernameOfCurrentUser] = useState("")
-
-  let [limit, setLimit] = useState(5)
-
-  let navigate = useNavigate();
-
-  let getCurrentUser = async () => {
-    try{
-      let currentUserInfo = await axios.get('http://localhost:3000/users/me', {
-        headers:{
-          Authorization: `Bearer ${token}`
-        }
+  const getCurrentUser = async () => {
+    try {
+      const res = await axios.get('http://localhost:3000/users/me', {
+        headers: { Authorization: `Bearer ${token}` }
       })
-
-      setUsernameOfCurrentUser(currentUserInfo.data.username)
-    }catch(err){
+      setUsernameOfCurrentUser(res.data.username)
+    } catch (err) {
       console.log("error getting current user info for dashboard")
     }
   }
 
-  let [pagePart, setPage] = useState(1)
-  let [numberOfPages, setNumberOfPages] = useState()
-
-
-  let getAllExpenses = async () =>{
-        try{
-            let allexpensesfrombackend = await axios.get(`http://localhost:3000/expenses/dashboard/${pagePart}/${limit} `, {
-            headers:{
-                Authorization:`Bearer ${token}`
-            }
-        })
-
-        // console.log(allexpensesfrombackend.data.allexpensesGivenToFrontend)
-        setNumberOfPages(Math.ceil(allexpensesfrombackend.data.totalNumberOfExpenses.length/limit))
-        console.log(Math.ceil(allexpensesfrombackend.data.totalNumberOfExpenses.length/limit))
-
-
-        setExpenses(allexpensesfrombackend.data.allexpensesGivenToFrontend)
-        }catch(err){
-            console.log("error getting all expenses", err)
-        }
+  const getAllExpenses = async () => {
+    try {
+      const res = await axios.get(`http://localhost:3000/expenses/dashboard/${pagePart}/${limit}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      setNumberOfPages(Math.ceil(res.data.totalNumberOfExpenses.length / limit))
+      setExpenses(res.data.allexpensesGivenToFrontend)
+    } catch (err) {
+      console.log("error getting all expenses", err)
+    }
   }
 
-  let minimumTransactionOfUserInAllExpneses = async () => {
-
-        
-        try{
-            let minimumtransactionofallexpensesofuser = await axios.get('http://localhost:3000/expenses/minimumTransactionInAllExpenses', {
-                headers:{
-                    Authorization:`Bearer ${token}`
-                }
-            })
-
-            setTotalExpenseOfAUserInOneExpense(minimumtransactionofallexpensesofuser.data.amountToBePaidByCurrentUser)
-            // console.log(minimumtransactionofallexpensesofuser.data.amountToBePaidByCurrentUser)
-            setminimumtransactionOfUserInAllExpenses(minimumtransactionofallexpensesofuser.data.minimumtransactionOfUserInAllExpenses)
-            // console.log(minimumtransactionofallexpensesofuser.data.minimumtransactionOfUserInAllExpenses[0].totalAmount)
-
-            setAmountOwedByUser(minimumtransactionofallexpensesofuser.data.amountOwedByUserTotal[0].totalAmount)
-            setAmountToBeRecievedByUserTotal(minimumtransactionofallexpensesofuser.data.amountToBeRecievedByUserTotal[0].totalAmount)
-
-        }catch(err){
-            console.log("error getting minimum transaction of user in all expenses",err)
-        }
+  const minimumTransactionOfUserInAllExpneses = async () => {
+    try {
+      const res = await axios.get('http://localhost:3000/expenses/minimumTransactionInAllExpenses', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      setTotalExpenseOfAUserInOneExpense(res.data.amountToBePaidByCurrentUser)
+      setMinimumtransactionOfUserInAllExpenses(res.data.minimumtransactionOfUserInAllExpenses)
+      setAmountOwedByUser(res.data.amountOwedByUserTotal[0].totalAmount)
+      setAmountToBeRecievedByUserTotal(res.data.amountToBeRecievedByUserTotal[0].totalAmount)
+    } catch (err) {
+      console.log("error getting minimum transaction", err)
     }
+  }
 
-    useEffect(()=>{
-        minimumTransactionOfUserInAllExpneses()
-        getCurrentUser()
-    }, [])
+  const openExpense = (expense) => {
+    setCurrentExpense(expense)
+    setExpensePopup(true)
+    document.body.style.overflow = "hidden"
+    document.documentElement.style.overflow = "hidden"
+  }
 
-    useEffect(()=>{
-        getAllExpenses()
-    }, [pagePart])
+  const closeExpense = () => {
+    setExpensePopup(false)
+    document.body.style.overflow = "auto"
+    document.documentElement.style.overflow = "auto"
+  }
+
+  // Build O(1) lookup for per-expense balances
+  const balanceLookup = useMemo(() => {
+    const map = new Map()
+    totalExpenseOfAUserInOneExpense.forEach((entry) => {
+      map.set(entry._id, entry.finalResult?.amount ?? 0)
+    })
+    return map
+  }, [totalExpenseOfAUserInOneExpense])
+
+  useEffect(() => {
+    minimumTransactionOfUserInAllExpneses()
+    getCurrentUser()
+  }, [])
+
+  useEffect(() => {
+    getAllExpenses()
+  }, [pagePart])
+
+  const netBalance = minimumtransactionOfUserInAllExpenses[0]?.totalAmount ?? 0
 
   return (
-    <div>
+    <div className="bg-[#f7f9fc] min-h-screen">
 
+      {/* Expense detail popup */}
       <AnimatePresence>
-            {expensePopup && 
-           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}>
-           <div className='inset-0 fixed flex flex-col justify-center items-center h-screen w-screen backdrop-blur-sm bg-black/50'>
-                <div className='flex justify-between items-center w-[90%]'>
-                    <button className='opacity-0'><X/></button>
-                    <button className='cursor-pointer text-white' onClick={(e)=>{
-                        setExpensePopup(false)
-                        document.body.style.overflow = "auto"
-                        document.documentElement.style.overflow = "auto"
-                    }}><X/></button>
+        {expensePopup && currentExpense && (
+          <motion.div
+            className="inset-0 fixed flex justify-center items-center h-screen w-screen backdrop-blur-sm bg-black/50 z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={closeExpense}
+          >
+            <motion.div
+              className="bg-white border border-[#1e2230]/10 min-h-95 w-[90%] max-w-[500px] rounded-2xl shadow-xl pb-6"
+              initial={{ opacity: 0, scale: 0.95, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center px-6 pt-5 pb-3 border-b border-[#1d4ed8]/10">
+                <p className="text-[#1e4ed8] text-2xl font-bold">{currentExpense.expenseName}</p>
+                <button
+                  className="cursor-pointer text-[#1d4ed8] hover:bg-[#1d4ed8]/10 rounded-full p-1.5 transition-colors"
+                  onClick={closeExpense}
+                  aria-label="Close"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="px-6 pt-4 flex flex-col items-start">
+                {currentExpense.expenseDescription && (
+                  <p className="text-gray-600 w-[95%]">{currentExpense.expenseDescription}</p>
+                )}
+
+                <div className="mt-4 space-y-1.5">
+                  <p><span className="text-[#2563eb] font-semibold text-[18px]">Payer</span> : {currentExpense.paidBy}</p>
+                  <p><span className="text-[#2563eb] font-semibold text-[18px]">Total Amount</span> : {currentExpense.totalAmount}</p>
+                  <p><span className="text-[#2563eb] font-semibold text-[18px]">Split Type</span> : {currentExpense.splitType}</p>
                 </div>
-                <div className='bg-[#eef3ff] border-2 border-[#1e2230]/20 min-h-115 w-[800px] rounded-xl'>
-                    <div className='ml-6 mt-6 flex flex-col justify-center items-start'>
-                        <p className='text-[#1e4ed8] text-3xl font-bold mb-2'>{currentExpense.expenseName}</p>
-                        <p className='text-gray-600 w-[80%]'>{currentExpense.expenseDescription}</p>
 
-                        <div className='mt-4'>
-                            <p><span className='text-[#2563eb] font-semibold text-[20px] mb-2'>Payer</span> : {currentExpense.paidBy}</p>
-                            <p><span className='text-[#2563eb] font-semibold text-[20px]'>Total Amount</span> : {currentExpense.totalAmount}</p>
-                        </div>
-
-                        <div className='mt-4'>
-                            <p><span className='text-[#2563eb] font-semibold text-[20px]'>Split Type</span> : {currentExpense.splitType}</p>
-                        </div>
-
-                        <div className='mt-4 flex flex-col'>
-                            <p className='mb-2'><span className='text-[#2563eb] font-semibold text-[20px]'>Contributors : </span></p>
-                            <div className='flex gap-3'>
-                                <div className='flex flex-col'>
-                                {
-                                    Object.keys(currentExpense.percentages).map((user, index)=>{
-                                        return <p key={index}>{user}{" : "}</p>
-                                    })
-                                }
-                                </div>
-                                
-                                <div className='flex flex-col'>
-                                {
-
-                                    // 
-                                    Object.values(currentExpense.percentages).map((amount, index)=>{
-                                        return <p key={index}>{
-                                            currentExpense.splitType === "Percentage" ? "1" : 
-                                            (currentExpense.splitType === "Equal"? 
-                                                (currentExpense.totalAmount/currentExpense.contributorsLength).toFixed(2)  : (currentExpense.totalAmount/currentExpense.contributorsLength).toFixed(2))
-                                                
-                                        }{currentExpense.splitType === "Percentage" ? " %" : " /-"}</p>
-                                    })
-                                }
-
-                                
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div className="mt-5 flex flex-col w-[95%]">
+                  <p className="text-[#2563eb] font-semibold text-[18px] mb-2">Contributors</p>
+                  <div className="flex flex-col gap-2">
+                    {currentExpense.percentages &&
+                      Object.entries(currentExpense.percentages).map(([user, value]) => {
+                        const contributorsLength = currentExpense.contributorsLength || 1
+                        const displayValue = currentExpense.splitType === "Percentage"
+                          ? `${value} %`
+                          : `${(currentExpense.totalAmount / contributorsLength).toFixed(2)} /-`
+                        return (
+                          <div key={user} className="flex justify-between items-center bg-[#f7f9fc] rounded-lg px-3 py-1.5">
+                            <span className="text-gray-700">{user}</span>
+                            <span className="font-medium text-[#1e2230]">{displayValue}</span>
+                          </div>
+                        )
+                      })}
+                  </div>
                 </div>
-            </div></motion.div>}
-        </AnimatePresence>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <div className='sm:ml-60 flex flex-col items-center justify-center '>
+      {/* Main content */}
+      <div className="md:ml-60 px-6 md:px-10 py-8 max-w-7xl mx-auto">
 
-       
-
-      <div className='flex justify-start items-center mt-6 ml-6 w-[95%]'>
-        <div>
-          <p className='mb-2'>Welcome, {usernameOfCurrentUser}</p>
-          <p className='text-[#1d4ed8] text-4xl font-bold'>Dashboard</p>
+        {/* Header */}
+        <div className="mb-8">
+          <p className="text-sm text-gray-400 mb-1">Welcome back, {usernameOfCurrentUser}</p>
+          <p className="text-3xl md:text-4xl font-bold text-[#1d4ed8]">Dashboard</p>
         </div>
 
-        <div>
-          <button className='opacity-0'>..</button>
-        </div>
-      </div>
-
-      <div className='flex justify-center items-center w-[70vw] gap-8 mt-3 flex-col'>
-            
-            <div className='flex justify-between items-center w-full'>
-              <p className='opacity-0'>Overview</p>
-              <p className='flex justify-center items-center gap-2 text-[#1e2230]'><Info size={20} className='cursor-pointer'/> Overview</p>
+        {/* Overview cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          {/* Net Balance */}
+          <div className="bg-white rounded-2xl border border-[#1d4ed8]/10 shadow-sm p-6">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-medium text-gray-500">Net Balance</p>
+              <div className="bg-[#1d4ed8]/8 rounded-full p-2">
+                <Wallet size={16} className="text-[#1d4ed8]" />
+              </div>
             </div>
+            <p className={`text-3xl font-bold ${netBalance >= 0 ? "text-green-600" : "text-red-600"}`}>
+              {netBalance.toFixed(2)}
+            </p>
+          </div>
 
-            <div className='flex justify-center items-center gap-10 w-full mb-6 sm:flex-row flex-col'>
-              <div className='flex justify-center items-center w-[33%] border-2 border-[#1d4ed8]/20 rounded-xl p-2'>
-                <p className='flex flex-col justify-center items-start my-4 gap-1'>Net Balance : <span className={` text-3xl ${minimumtransactionOfUserInAllExpenses[0]?.totalAmount > 0 ? "text-green-600" : "text-red-600"}`}>{minimumtransactionOfUserInAllExpenses[0]?.totalAmount.toFixed(2)}</span></p>
+          {/* Amount Owed */}
+          <div className="bg-white rounded-2xl border border-[#1d4ed8]/10 shadow-sm p-6">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-medium text-gray-500">You Owe</p>
+              <div className="bg-red-50 rounded-full p-2">
+                <TrendingDown size={16} className="text-red-500" />
+              </div>
             </div>
+            <p className="text-3xl font-bold text-red-600">
+              {amountOwedByUser?.toFixed(2) ?? "0.00"}
+            </p>
+          </div>
 
-           <div className='flex justify-center items-center w-[33%] border-2 border-[#1d4ed8]/20 rounded-xl p-2'>
-                <p className='flex flex-col justify-center items-start my-4 gap-1'>Amount Owed : <span className={` text-3xl ${minimumtransactionOfUserInAllExpenses[0]?.totalAmount? "text-red-600" : "text-red-600"}`}>{amountOwedByUser?.toFixed(2)}</span></p>
-            </div> 
-
-           <div className='flex justify-center items-center w-[33%] border-2 border-[#1d4ed8]/20 rounded-xl p-2'>
-                <p className='flex flex-col justify-center items-start my-4 gap-1'>Amount To Recieve : <span className={` text-3xl ${minimumtransactionOfUserInAllExpenses[0]?.totalAmount? "text-green-600" : "text-green-600"}`}>{amountToBeRecievedByUserTotal?.toFixed(2)}</span></p>
-            </div> 
+          {/* Amount to Receive */}
+          <div className="bg-white rounded-2xl border border-[#1d4ed8]/10 shadow-sm p-6">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-medium text-gray-500">You'll Receive</p>
+              <div className="bg-green-50 rounded-full p-2">
+                <TrendingUp size={16} className="text-green-500" />
+              </div>
             </div>
-
-      </div>
-
-        <div className='flex justify-between items-center mr-6 ml-6 my-6 w-[70vw] mb-6'>
-            <p className='text-3xl font-bold text-[#1d4ed8]'>Your Expenses!</p>
-        </div>
-
-        <div className='border-2 border-[#1d4ed8]/20 rounded-xl pt-4 mb-2 '>
-
-        <div className='flex justify-evenly items-center border-b border-b-gray-300 pb-3 w-[70vw] text-gray-500 text-lg'>
-          <p className='w-[14vw] flex justify-center items-center'>Index</p>
-          <p className='w-[14vw] flex justify-center items-center'>Title</p>
-          <p className='w-[14vw] flex justify-center items-center'>Paid By</p>
-          <p className='w-[14vw] flex justify-center items-center'>Amount</p>
-          <p className='w-[14vw] flex justify-center items-center'>Your Contribution</p>
-          <div className='w-[14vw] flex justify-center items-center'>
-            <button className='flex justify-center items-center gap-2 hover:bg-[#1d4ed8]/40 bg-[#1d4ed8] text-white px-3 py-1 cursor-pointer' onClick={(e)=>{
-              navigate('/expenses')
-          }}>View All <ArrowRight size={20}/></button>
+            <p className="text-3xl font-bold text-green-600">
+              {amountToBeRecievedByUserTotal?.toFixed(2) ?? "0.00"}
+            </p>
           </div>
         </div>
 
-        <div className=''>
-        {
-          expenses.map((expense, index)=>{
-                    
-                    return <div className='flex justify-evenly items-center w-[70vw] border-b border-b-gray-300 py-7' key={index}>
-                      <p className='w-[14vw] flex justify-center items-center'>{index+1}</p>
-                      <p className='w-[14vw] flex justify-center items-center'>{expense.expenseName}</p>
-                      <p className='w-[14vw] flex justify-center items-center'>{expense.paidBy}</p>
-                      <p className='w-[14vw] flex justify-center items-center'>{expense.totalAmount}</p>
+        {/* Expenses table */}
+        <div className="bg-white rounded-2xl border border-[#1d4ed8]/10 shadow-sm overflow-hidden">
+          {/* Table header */}
+          <div className="flex justify-between items-center px-6 md:px-8 py-5 border-b border-[#1d4ed8]/10">
+            <p className="text-xl font-semibold text-[#1d4ed8]">Recent Expenses</p>
+            <button
+              className="bg-[#1d4ed8] text-white py-2 px-4 rounded-lg flex items-center gap-1.5 text-sm font-medium hover:bg-[#1742b8] transition-colors cursor-pointer"
+              onClick={() => navigate('/expenses')}
+            >
+              View All <ArrowRight size={15} />
+            </button>
+          </div>
 
-                      {/* <p className={`w-[14vw] flex justify-center items-center text-2xl ${!totalExpenseOfAUserInOneExpense?.[index]?.finalResult.amount.toFixed(2).includes("-") ? "text-green-600" : "text-red-600"}`}>{totalExpenseOfAUserInOneExpense?.[index]?.finalResult.amount.toFixed(2) ? "" : "-"} {totalExpenseOfAUserInOneExpense?.[index]?.finalResult.amount.toFixed(2)}</p> */}
+          {/* Column headings */}
+          <div className="flex justify-evenly items-center bg-gray-50 py-3 border-b border-gray-100 text-gray-400 text-xs uppercase tracking-wide">
+            <p className="w-[14vw] flex justify-center">#</p>
+            <p className="w-[14vw] flex justify-center">Title</p>
+            <p className="w-[14vw] flex justify-center">Paid By</p>
+            <p className="w-[14vw] flex justify-center">Amount</p>
+            <p className="w-[14vw] flex justify-center">Your Share</p>
+            <p className="w-[14vw] flex justify-center" />
+          </div>
 
-                      <p 
-                      className={`w-[14vw] flex justify-center items-center text-2xl ${!totalExpenseOfAUserInOneExpense?.[index]?.finalResult?.amount.toFixed(2).includes("-") ? "text-green-600" : "text-red-600"}`}>
-                      {
-                        totalExpenseOfAUserInOneExpense.map((totalSum,index2)=>{
-                          if(totalExpenseOfAUserInOneExpense[index2]._id == expense._id){
-                            return <span className={`${totalExpenseOfAUserInOneExpense[index2].finalResult.amount > 0 ? "text-green-600" : "text-red-600"}`}>{(totalExpenseOfAUserInOneExpense[index2].finalResult.amount >0 || totalExpenseOfAUserInOneExpense[index2].finalResult.amount <= 0) ? totalExpenseOfAUserInOneExpense[index2].finalResult.amount.toFixed(2) : "0"}</span>
-                          }
-                        })
-                      }
-                      </p>
+          {/* Rows */}
+          {expenses.length === 0 && (
+            <div className="py-12 text-center text-gray-400">No expenses yet.</div>
+          )}
 
-                        <button className='w-[14vw] flex justify-center items-center cursor-pointer' onClick={(e)=>{
-                            setCurrentExpense(expense)
-                            setExpensePopup(true)
-                            document.body.style.overflow = "hidden"
-                            document.documentElement.style.overflow = "hidden"
-                        }}>View</button>
-                    </div>
-                })
+          {expenses.map((expense, index) => {
+            const balance = balanceLookup.get(expense._id) ?? 0
+            const isPositive = balance >= 0
+            return (
+              <div
+                className="flex justify-evenly items-center border-b border-gray-100 last:border-b-0 py-5 hover:bg-[#f5f8ff] transition-colors"
+                key={expense._id ?? index}
+              >
+                <p className="w-[14vw] flex justify-center text-gray-400 text-sm">
+                  {(pagePart - 1) * limit + index + 1}
+                </p>
+                <p className="w-[14vw] flex justify-center font-medium text-[#1e2230] text-sm">{expense.expenseName}</p>
+                <p className="w-[14vw] flex justify-center text-gray-500 text-sm">{expense.paidBy}</p>
+                <p className="w-[14vw] flex justify-center text-gray-700 text-sm">{Number(expense.totalAmount).toFixed(2)}</p>
+                <p className={`w-[14vw] flex justify-center text-lg font-semibold ${isPositive ? "text-green-600" : "text-red-600"}`}>
+                  {balance.toFixed(2)}
+                </p>
+                <button
+                  className="w-[14vw] flex justify-center text-[#1d4ed8] text-sm hover:underline cursor-pointer font-medium"
+                  onClick={() => openExpense(expense)}
+                >
+                  View
+                </button>
+              </div>
+            )
+          })}
 
-        }
+          {/* Pagination */}
+          <div className="flex justify-end items-center gap-3 px-6 py-4 border-t border-gray-100">
+            <span className="text-sm text-gray-400">Page {pagePart} of {numberOfPages}</span>
+            <button
+              className="p-1.5 rounded-lg text-gray-400 hover:text-[#1d4ed8] hover:bg-[#1d4ed8]/8 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={pagePart <= 1}
+              aria-label="Previous page"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              className="p-1.5 rounded-lg text-gray-400 hover:text-[#1d4ed8] hover:bg-[#1d4ed8]/8 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              onClick={() => setPage(p => Math.min(numberOfPages, p + 1))}
+              disabled={pagePart >= numberOfPages}
+              aria-label="Next page"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
         </div>
+
       </div>
-
-        <div className='flex justify-between items-center w-[68vw] mb-6'>
-          <div className='opacity-0'>
-            <button className='cursor-pointer' onClick={(e)=>{setPage(pagePart-1)}}><ChevronLeft/></button>
-            <button className='cursor-pointer' onClick={(e)=>{setPage(pagePart+1)}}><ChevronRight/></button>
-          </div>
-          <div className='flex gap-2 justify-center items-center'>
-            <p >Page {pagePart} / {numberOfPages}</p>
-            <button className='cursor-pointer text-gray-400 hover:text-gray-600' onClick={(e)=>{if(pagePart >= numberOfPages){
-              setPage(pagePart-1)
-            }}}><ChevronLeft/></button>
-            <button className={`cursor-pointer text-gray-400 hover:text-gray-600`} onClick={(e)=>{if(pagePart <= numberOfPages){
-              setPage(pagePart+1)
-            }}}><ChevronRight/></button>
-          </div>
-        </div>
-
-
-    </div>
     </div>
   )
 }
