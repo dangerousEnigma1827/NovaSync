@@ -2,8 +2,6 @@
 
 # 🌌 NovaSync
 
-### *Split Smart. Settle Instantly.*
-
 </div>
 
 ---
@@ -19,16 +17,7 @@ It not only tracks who paid what, but also intelligently computes **optimized se
 ## 🖼️ Images
 
 <p align="center">
-  <img src="./assets/banner.png" width="100%" />
-</p>
-
-<!-- FRONTEND IMAGE PLACEHOLDER -->
-<p align="center">
-  <img src="./assets/frontend-preview.png" width="90%" />
-</p>
-
-<p align="center">
-  <img src="./assets/demo.gif" width="85%" />
+  <img src="./client/public/dashboard.png" width="100%" />
 </p>
 
 ---
@@ -36,11 +25,8 @@ It not only tracks who paid what, but also intelligently computes **optimized se
 ## ⚡ Tech Stack
 
 <p align="center">
-  <img src="https://skillicons.dev/icons?i=react,nodejs,express,mongodb,vite,tailwind,framer" />
+  <img src="https://skillicons.dev/icons?i=react,nodejs,express,mongodb,vite,tailwind" />
 </p>
-</p>
-
----
 
 ## 🚀 Core Features
 
@@ -76,10 +62,9 @@ NovaSync/
 │
 ├── client/
 │   ├── src/
+│   │   ├── public/
 │   │   ├── components/
 │   │   ├── pages/
-│   │   ├── animations/
-│   │   ├── hooks/
 │   │   └── utils/
 │
 ├── server/
@@ -90,9 +75,7 @@ NovaSync/
 │   └── utils/
 │
 ├── assets/
-│   ├── banner.png
-│   ├── frontend-preview.png
-│   └── demo.gif
+│   ├── dashboard.png
 │
 └── README.md
 ```
@@ -146,6 +129,6 @@ JWT_SECRET=your_secret_key
 
 <div align="center">
 
-### 🌌 Built for clarity. Designed for motion. Optimized for settlement.
+### 🌌 Built for Recruitathon 2.0 By dangerousEnigma
 
 </div>
