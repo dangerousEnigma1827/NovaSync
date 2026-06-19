@@ -5,10 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 const TIME_FILTERS = ['None', 'Today', 'This Week', 'This Month', 'This Year', 'Other']
 
-// Pure helper — given a date, returns which filter buckets it currently
-// belongs to. No shared mutable state, so it's safe to call during render
-// (the original version mutated a module-level `timeFilterArray`, which
-// broke on first render before any expense had run through it).
+
+
 function getTimeBuckets(createdAt) {
     if (!createdAt) return ['None']
     const diffDays = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24)

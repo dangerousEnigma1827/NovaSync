@@ -42,11 +42,13 @@ function LeftBar() {
         {/* Top: logo + nav */}
         <div className="flex flex-col gap-8">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 px-2">
-            <img src="/icon.png" alt="NovaSync" className="h-7 w-7 shrink-0" />
-            <span className="text-xl font-bold text-white">Nova</span>
-            <span className="text-xl font-bold text-[#1d4ed8]">Sync</span>
-          </Link>
+            <div className='flex items-center gap-1'>
+                <img src="/icon.png" alt="NovaSync" className="h-7 w-7 shrink-0" />
+                <Link to="/" className="flex items-center px-2">
+                    <span className="text-2xl font-bold text-white">Nova</span>
+                    <span className="text-2xl font-bold text-[#1d4ed8]">Sync</span>
+                </Link>
+            </div>
 
           {/* Nav links */}
           <nav className="flex flex-col gap-1">

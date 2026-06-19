@@ -201,8 +201,7 @@ function ViewGroup() {
         currentUser()
     }, [])
 
-    // single source of truth for scroll-lock — avoids the page getting stuck
-    // scrolled-off whenever a popup closes via a path that forgot to reset it
+
     useEffect(()=>{
         const anyPopupOpen = editPopup || deleteGroupPopup || expensePopup || filterPopup
         document.body.style.overflow = anyPopupOpen ? "hidden" : "auto"
@@ -547,7 +546,6 @@ function ViewGroup() {
                 </div>
             </div>
 
-            {/* who owes whom */}
             {!isLoading &&
                 <div className='bg-white rounded-2xl border border-[#1d4ed8]/10 shadow-sm p-6 md:p-8 mt-6'>
                     <p className='text-[#1d4ed8] text-xl font-semibold mb-4'>Who Owes Whom?</p>
@@ -573,7 +571,6 @@ function ViewGroup() {
                 </div>
             }
 
-            {/* expenses section */}
             <div className='mt-10'>
                 <div className='flex justify-between items-center mb-5'>
                     <p className='text-2xl md:text-3xl font-bold text-[#1d4ed8]'>Expenses</p>

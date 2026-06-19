@@ -32,19 +32,16 @@ function Register() {
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#f7f9fc]">
 
-      {/* Left panel — decorative */}
       <div className="hidden md:flex w-1/2 bg-[#1e2230] flex-col justify-between p-12 relative overflow-hidden">
         <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-[#1d4ed8]/10 pointer-events-none" />
         <div className="absolute bottom-0 right-0 w-72 h-72 rounded-full bg-[#1d4ed8]/8 pointer-events-none" />
 
-        {/* Logo */}
         <div className="flex items-center gap-2 relative z-10">
           <img src="/icon.png" alt="" className="h-8 w-8" />
           <span className="text-2xl font-bold text-white">Nova</span>
           <span className="text-2xl font-bold text-[#1d4ed8]">Sync</span>
         </div>
 
-        {/* Hero text */}
         <div className="relative z-10">
           <p className="text-white text-4xl font-bold leading-snug mb-3">
             Split expenses.<br />Stay settled.
@@ -57,9 +54,7 @@ function Register() {
         <p className="text-white/20 text-xs relative z-10">NovaSync · Smart expense splitting</p>
       </div>
 
-      {/* Right panel — form */}
       <div className="flex-1 flex flex-col justify-center items-center px-6">
-        {/* Mobile logo */}
         <div className="flex items-center gap-1.5 mb-10 md:hidden">
           <img src="/icon.png" alt="" className="h-7 w-7" />
           <span className="text-2xl font-bold text-[#1e2230]">Nova</span>
@@ -71,7 +66,6 @@ function Register() {
           <p className="text-[#1e2230] text-3xl font-bold mb-8">Create your account</p>
 
           <form className="flex flex-col gap-4" onSubmit={registerFunc}>
-            {/* Username */}
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-gray-600">Username</label>
               <div className="flex items-center bg-white border border-[#1e2230]/15 rounded-xl px-3 py-2.5 gap-2.5 focus-within:border-[#1d4ed8] transition-colors">
@@ -85,8 +79,7 @@ function Register() {
                 />
               </div>
             </div>
-
-            {/* Email */}
+            
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-gray-600">Email</label>
               <div className="flex items-center bg-white border border-[#1e2230]/15 rounded-xl px-3 py-2.5 gap-2.5 focus-within:border-[#1d4ed8] transition-colors">
@@ -101,7 +94,6 @@ function Register() {
               </div>
             </div>
 
-            {/* Password */}
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-gray-600">Password</label>
               <div className="flex items-center bg-white border border-[#1e2230]/15 rounded-xl px-3 py-2.5 gap-2.5 focus-within:border-[#1d4ed8] transition-colors">
