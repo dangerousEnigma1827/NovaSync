@@ -263,6 +263,7 @@ function Dashboard() {
             )
           })}
 
+
           {/* Pagination */}
           <div className="flex justify-end items-center gap-3 px-6 py-4 border-t border-gray-100">
             <span className="text-sm text-gray-400">Page {pagePart} of {numberOfPages}</span>

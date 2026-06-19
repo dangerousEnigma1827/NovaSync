@@ -22,8 +22,10 @@ app.use('/groups', groupRoutes)
 app.use('/expenses', expenseRoutes)
 app.use('/chats', chatRoutes)
 
-app.get('/', (req,res)=>{
-    res.send("Hello")
+let userModels = require('./models/userModels')
+
+app.get('/', async (req,res)=>{
+    let allUsers = await userModels.find()
 })
 
 app.listen(process.env.PORT || 3000, ()=>{

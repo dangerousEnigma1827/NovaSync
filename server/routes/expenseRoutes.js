@@ -316,7 +316,6 @@ router.get('/:groupId', auth, async (req, res)=>{
         ])
 
         console.log(amountToBePaidByCurrentUser)
-        console.log("ok")
 
         res.json({
             "totalExpense" : totalExpense,
