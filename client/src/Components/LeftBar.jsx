@@ -1,71 +1,86 @@
-import { Link, NavLink } from 'react-router-dom'
-import { LayoutDashboard, Users, UserRoundPen, LogOut, Banknote  } from 'lucide-react';
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom';
-import Popup from './Popup';
-import { motion } from "framer-motion"
+import { Link, NavLink } from 'react-router-dom'
+import { LayoutDashboard, Users, UserRoundPen, LogOut, Banknote } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { AnimatePresence, motion } from "framer-motion"
+import Popup from './Popup'
+
+const NAV_LINKS = [
+  { to: '/',         icon: LayoutDashboard, label: 'Home'     },
+  { to: '/groups',   icon: Users,           label: 'Groups'   },
+  { to: '/expenses', icon: Banknote,        label: 'Expenses' },
+  { to: '/profile',  icon: UserRoundPen,    label: 'Profile'  },
+]
 
 function LeftBar() {
-
-    let navigate = useNavigate()
-    let [popup, setPopup] = useState(false)
+  const navigate = useNavigate()
+  const [popup, setPopup] = useState(false)
 
   return (
-    <div>
+    <>
+      {/* Logout confirmation popup */}
+      <AnimatePresence>
+        {popup && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Popup
+              title="Are you sure you want to logout?"
+              desc="You will need to log in again to access your dashboard."
+              setPopup={setPopup}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        {popup && <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}>
-            <Popup title={"Are you sure you want to logout?"} desc={"You will need to login again to access your dashboard."} setPopup={setPopup}/>
-        </motion.div>}
-            
-    <div className='hidden md:fixed  w-60 h-screen top-0 left-0 bg-[#1E2230] md:flex flex-col justify-between items-center'>
+      {/* Sidebar */}
+      <div className="hidden md:flex fixed top-0 left-0 w-60 h-screen bg-[#1e2230] flex-col justify-between py-8 px-4 z-30">
 
-        
+        {/* Top: logo + nav */}
+        <div className="flex flex-col gap-8">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2 px-2">
+            <img src="/icon.png" alt="NovaSync" className="h-7 w-7 shrink-0" />
+            <span className="text-xl font-bold text-white">Nova</span>
+            <span className="text-xl font-bold text-[#1d4ed8]">Sync</span>
+          </Link>
 
-        {/* novasync ka logo aur links */}
-        <div className='mt-10'>
-            {/* logo of novasync */}
-           <Link to={'/'}>
-                <div className='flex flex-row mb-15 justify-center items-center cursor-pointer'>
-                <img src="/icon.png" alt="" className='h-7 w-7 mr-2'/>
-                <p className='text-3xl font-bold text-white'>Nova</p>
-                <p className='text-3xl font-bold text-[#1d4ed8]'>Sync</p>
-                </div>
-           </Link>
-
-            {/* links */}
-            <div className='flex flex-col justify-center items-start gap-2'>
-                <NavLink to={'/'} className={({isActive}) => 
-                    `text-white text-lg w-45 flex flex-row  items-center gap-2 ${isActive ? "bg-[#1d4ed8] px-4 py-1 rounded-md" : "bg-[#1e2230] px-4 py-1 rounded-md text-white/50"}`
-                }><LayoutDashboard size={20}/>  Home</NavLink>
-                <NavLink to={'/groups'} className={({isActive}) => 
-                    `text-white text-lg w-45 flex flex-row  items-center gap-2 ${isActive ? "bg-[#1d4ed8] px-4 py-1 rounded-md" : "bg-[#1e2230] px-4 py-1 rounded-md text-white/50"}`
-                }><Users size={20} className=''/>  Groups</NavLink>
-                <NavLink to={'/expenses'} className={({isActive}) => 
-                    `text-white text-lg w-45 flex flex-row  items-center gap-2 ${isActive ? "bg-[#1d4ed8] px-4 py-1 rounded-md" : "bg-[#1e2230] px-4 py-1 rounded-md text-white/50"}`
-                }><Banknote size={20}/>  Expenses</NavLink>
-                <NavLink to={'/profile'} className={({isActive}) => 
-                    `text-white text-lg w-45 flex flex-row  items-center gap-2 ${isActive ? "bg-[#1d4ed8] px-4 py-1 rounded-md" : "bg-[#1e2230] px-4 py-1 rounded-md text-white/50"}`
-                }><UserRoundPen size={20}/>  Profile</NavLink>
-                
-            </div>
+          {/* Nav links */}
+          <nav className="flex flex-col gap-1">
+            {NAV_LINKS.map(({ to, icon: Icon, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={to === '/'}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-[#1d4ed8] text-white'
+                      : 'text-white/50 hover:text-white hover:bg-white/5'
+                  }`
+                }
+              >
+                <Icon size={18} />
+                {label}
+              </NavLink>
+            ))}
+          </nav>
         </div>
 
-        {/* logout option */}
-        <div className='flex justify-center items-center'>
-            <div className='flex flex-row justify-start items-center mb-10 w-45 text-white gap-2 cursor-pointer px-4' onClick={()=>{
-                setPopup(true)
-                
-            }}>
-                <LogOut size={20}/>
-                <p>Logout</p>
-            </div>
-        </div>
-    </div>
-    </div>
+        {/* Bottom: logout */}
+        <button
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white hover:bg-white/5 transition-colors cursor-pointer w-full text-left"
+          onClick={() => setPopup(true)}
+        >
+          <LogOut size={18} />
+          Logout
+        </button>
+
+      </div>
+    </>
   )
 }
 
