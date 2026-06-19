@@ -246,7 +246,6 @@ router.get('/:groupId', auth, async (req, res)=>{
 
     try{
         let totalExpense
-        // all expenses in a group 
         if(req.query.userFilter == "None"){
             totalExpense = await expenseModels.aggregate([
             {
@@ -265,16 +264,6 @@ router.get('/:groupId', auth, async (req, res)=>{
             }
         ])
         }
-
-        // let totalExpense = await expenseModels.aggregate([
-        //     {
-        //         $match:{
-        //             "groupId":req.params.groupId,
-        //             "contributors":req.query.userFilter
-        //         }
-        //     }
-        // ])
-
         // net +- contribution of user in one expense (5th column)
         let amountToBePaidByCurrentUser = await expenseModels.aggregate([
             {
@@ -315,11 +304,8 @@ router.get('/:groupId', auth, async (req, res)=>{
             }
         ])
 
-        console.log(amountToBePaidByCurrentUser)
-
         res.json({
             "totalExpense" : totalExpense,
-            // "amountToBePaidByUser":amountToBePaidByUser,
             "amountToBePaidByCurrentUser":amountToBePaidByCurrentUser
         })
 
@@ -332,7 +318,6 @@ router.get('/:groupId', auth, async (req, res)=>{
 router.get('/:groupId/minimumTransaction', auth, async (req,res)=>{
     try{
 
-        // minimum transaction of all users in a group, total to pay (+- of all expenses)
         let minimumTransactionsInBackend = await expenseModels.aggregate([
             {
                 $match:{
@@ -380,154 +365,6 @@ router.get('/:groupId/minimumTransaction', auth, async (req,res)=>{
                 }
             }
         ])
-
-        console.log(minimumTransactionsInBackend)
-
-
-        // // console.log(minimumTransactionsInBackend)
-        // for(let i=0; i< minimumTransactionsInBackend.length; i++){
-        //     if(minimumTransactionsInBackend[i].totalAmount > 0){
-        //         positiveUsers = [...positiveUsers, Math.round(minimumTransactionsInBackend[i].totalAmount)]
-        //     }
-        //     if(minimumTransactionsInBackend[i].totalAmount < 0){
-        //         negativeUsers = [...negativeUsers, Math.round(minimumTransactionsInBackend[i].totalAmount)]
-        //     }
-        // }
-
-        // let oneTransaction = (tempObj) => {
-
-        //     let positiveNumIndexInPositiveUsers=0, negativeNumIndexInNegativeUsers=0
-
-
-        //     // let allSorted=true;
-
-        //     // for(let i=0; i<tempObj.length; i++)
-        //     // {
-        //     //     if(tempObj[i].totalAmount != 0){
-        //     //         allSorted = false;
-        //     //     }
-        //     // }
-
-        //     // if(allSorted){
-        //     //     console.log("returning")
-        //     //     return recordOfTransactions
-        //     // }
-
-        //     let maxPositive=0, maxNeg=0;
-
-        //     for(let i=0; i<positiveUsers.length; i++){
-        //         if(positiveUsers[i] > maxPositive){
-        //             maxPositive = positiveUsers[i]
-        //             positiveNumIndexInPositiveUsers = i
-        //         }
-        //     }
-        //     for(let i=0; i<negativeUsers.length; i++){
-        //         if(Math.abs(negativeUsers[i]) > Math.abs(maxNeg)){
-        //             maxNeg = negativeUsers[i]
-        //             negativeNumIndexInNegativeUsers = i
-        //         }
-        //     }
-
-        //     // console.log(maxNeg, maxPositive, "1")
-
-        //     let positiveNumIndex, negativeNumIndex
-
-
-        //     for(let i=0; i<tempObj.length; i++)
-        //     {
-        //         if(tempObj[i].totalAmount == maxPositive){
-        //             positiveNumIndex = i
-        //         }
-        //         if(tempObj[i].totalAmount == maxNeg){
-        //             negativeNumIndex = i
-        //         }
-        //     }
-
-        //     if(Math.round(Math.abs(maxNeg)) > Math.round(maxPositive)){
-
-        //         console.log("case 1", maxNeg, maxPositive)
-
-        //         console.log(negativeNumIndex)
-        //         // tempObj[negativeNumIndex].totalAmount = Math.round(maxNeg)+Math.round(maxPositive)
-        //         // tempObj[positiveNumIndex].totalAmount = 0
-
-        //         // recordOfTransactions = [...recordOfTransactions, {
-        //         //     "from":tempObj[negativeNumIndex].user,
-        //         //     "to":tempObj[positiveNumIndex].user,
-        //         //     "totalAmount":Math.round(maxNeg)+Math.round(maxPositive)
-        //         // }]
-
-        //         recordOfTransactions = [...recordOfTransactions, {
-        //             "from":tempObj[negativeNumIndex].user,
-        //             "to":tempObj[positiveNumIndex].user,
-        //             "totalAmount": maxPositive
-        //         }]
-
-
-        //         positiveUsers[positiveNumIndexInPositiveUsers] = 0
-        //         negativeUsers[negativeNumIndexInNegativeUsers] = Math.round(maxNeg)+Math.round(maxPositive)
-        //     }
-
-        //     if(Math.round(maxPositive)+Math.round(maxNeg) > 0){
-        //         console.log("case 2", maxNeg, maxPositive)
-
-        //         tempObj[positiveNumIndex].totalAmount = Math.round(maxNeg)+Math.round(maxPositive)
-        //         tempObj[negativeNumIndex].totalAmount = 0
-
-        //         recordOfTransactions = [...recordOfTransactions, {
-        //             "from":tempObj[negativeNumIndex].user,
-        //             "to":tempObj[positiveNumIndex].user,
-        //             "totalAmount":  Math.round(Math.abs(maxNeg))
-        //         }]
-
-        //         negativeUsers[negativeNumIndexInNegativeUsers] = 0
-        //         positiveUsers[positiveNumIndexInPositiveUsers] = Math.round(maxNeg)+Math.round(maxPositive)
-        //     }
-
-        //     if(Math.round(maxNeg) + Math.round(maxPositive) == 0){
-
-        //         console.log("case 3", maxNeg, maxPositive)
-
-        //         tempObj[positiveNumIndex].totalAmount = Math.round(maxNeg)+Math.round(maxPositive)
-        //         tempObj[negativeNumIndex].totalAmount = 0
-
-        //         recordOfTransactions = [...recordOfTransactions, {
-        //             "from":tempObj[negativeNumIndex].user,
-        //             "to":tempObj[positiveNumIndex].user,
-        //             "totalAmount": maxPositive
-        //         }]
-
-        //         negativeUsers[negativeNumIndexInNegativeUsers] = 0
-        //         positiveUsers[positiveNumIndexInPositiveUsers] = Math.round(maxNeg)+Math.round(maxPositive)
-        //     }
-
-        //     // console.log(tempObj)
-        //     console.log(recordOfTransactions)
-
-
-        // }
-        
-        // oneTransaction(tempObj)
-        // oneTransaction(tempObj)
-
-        // maxPositive = 0, maxNeg = 0
-
-        // for(let i=0; i<positiveUsers.length; i++){
-        //     if(positiveUsers[i] > maxPositive){
-        //         maxPositive = positiveUsers[i]
-        //         positiveNumIndexInPositiveUsers = i
-        //     }
-        // }
-
-        // for(let i=0; i<negativeUsers.length; i++){
-        //     if(Math.abs(negativeUsers[i]) > Math.abs(maxNeg)){
-        //         maxNeg = negativeUsers[i]
-        //         negativeNumIndexInNegativeUsers = i
-        //     }
-        // }
-
-        // console.log(maxNeg, maxPositive)
-
         
         let positiveUsers = []
         let negativeUsers = []
@@ -537,8 +374,6 @@ router.get('/:groupId/minimumTransaction', auth, async (req,res)=>{
 
 
         let recordOfTransactions = []
-
-        console.log(tempObj)
 
         for(let i=0; i<tempObj.length; i++)
         {
@@ -567,10 +402,8 @@ router.get('/:groupId/minimumTransaction', auth, async (req,res)=>{
 
             
             if(isSorted){
-                console.log("done")
                 return;
             }
-            // console.log("returing")
 
             for(let i=0; i<positiveUsers.length; i++)
             {
@@ -588,8 +421,6 @@ router.get('/:groupId/minimumTransaction', auth, async (req,res)=>{
                 }
             }
 
-            // console.log(positiveUsers, negativeUsers)
-            // console.log(maxNeg, maxPos)
 
             let userindexintempMax, userindexintempMin
 
@@ -603,10 +434,7 @@ router.get('/:groupId/minimumTransaction', auth, async (req,res)=>{
                 }
             }
 
-            
-
             if(maxPos < Math.abs(maxNeg)){
-                console.log("case1", maxNeg, maxPos)
                 positiveUsers[maxPosIndex]=0
                 negativeUsers[maxNegIndex] = maxPos+maxNeg
                 tempObj[userindexintempMax].totalAmount = 0
@@ -621,7 +449,6 @@ router.get('/:groupId/minimumTransaction', auth, async (req,res)=>{
                 ]
             }
             if(maxPos > Math.abs(maxNeg)){
-                console.log("case2", maxNeg, maxPos)
                 positiveUsers[maxPosIndex]=maxPos+maxNeg
                 negativeUsers[maxNegIndex] = 0
 
@@ -637,7 +464,6 @@ router.get('/:groupId/minimumTransaction', auth, async (req,res)=>{
                 ]
             }
             if(maxPos == Math.abs(maxNeg)){
-                console.log("case3", maxNeg, maxPos)
                 positiveUsers[maxPosIndex]=maxPos+maxNeg
                 negativeUsers[maxNegIndex] = 0
 
@@ -653,18 +479,12 @@ router.get('/:groupId/minimumTransaction', auth, async (req,res)=>{
                 ]
             }
 
-            // console.log(recordOfTransactions)
-            // console.log(tempObj)
-            // console.log(positiveUsers, negativeUsers)
-
-            
             oneTransaction(tempObj)
         }
 
 
         oneTransaction(tempObj)
 
-        // minimum transaction only of current user in a group
         let minimumTransactionsInBackendForCurrentuser = await expenseModels.aggregate([
             {
                 $match:{
@@ -732,8 +552,6 @@ router.get('/:groupId/minimumTransaction', auth, async (req,res)=>{
 
 
 router.post('/:groupId/add', auth, async (req, res)=>{
-    console.log(req.body)
-
     if(req.body.splitType == "" || !req.body.paidBy || !req.body.totalAmount || !req.body.expenseName || !req.body.expenseDescription) return res.status(400).json({"message":"Fill All The Provided Inputs!"})
 
     let expenseDataInBackend = await expenseModels.create(req.body)
