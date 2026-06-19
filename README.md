@@ -1,10 +1,8 @@
 <div align="center">
 
-# 🌌 NovaSync
+#  NovaSync
 
 </div>
-
----
 
 ## 📌 Overview
 
@@ -14,19 +12,20 @@ It not only tracks who paid what, but also intelligently computes **optimized se
 
 ---
 
-## 🖼️ Images
+## ⚡ Tech Stack
+<p align="center">
+  <img src="https://skillicons.dev/icons?i=react,nodejs,express,mongodb,vite,tailwind" />
+</p>
+
+---
+
+## 🖼️ Dashboard Overview
 
 <p align="center">
   <img src="./client/public/dashboard.png" width="100%" />
 </p>
 
 ---
-
-## ⚡ Tech Stack
-
-<p align="center">
-  <img src="https://skillicons.dev/icons?i=react,nodejs,express,mongodb,vite,tailwind" />
-</p>
 
 ## 🚀 Core Features
 
@@ -129,6 +128,6 @@ JWT_SECRET=your_secret_key
 
 <div align="center">
 
-### 🌌 Built for Recruitathon 2.0 By dangerousEnigma
+###  Built for Recruitathon 2.0 By dangerousEnigma❤️
 
 </div>
