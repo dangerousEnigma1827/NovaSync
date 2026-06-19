@@ -1,284 +1,263 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
 import { X, Search } from 'lucide-react'
-import { motion, AnimatePresence, time } from "framer-motion"
+import { motion, AnimatePresence } from 'framer-motion'
 
+const TIME_FILTERS = ['None', 'Today', 'This Week', 'This Month', 'This Year', 'Other']
 
+// Pure helper — given a date, returns which filter buckets it currently
+// belongs to. No shared mutable state, so it's safe to call during render
+// (the original version mutated a module-level `timeFilterArray`, which
+// broke on first render before any expense had run through it).
+function getTimeBuckets(createdAt) {
+    if (!createdAt) return ['None']
+    const diffDays = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24)
+
+    if (diffDays < 1) return ['Today', 'This Week', 'This Month', 'This Year', 'None']
+    if (diffDays < 7) return ['This Week', 'This Month', 'This Year', 'None']
+    if (diffDays < 31) return ['This Month', 'This Year', 'None']
+    if (diffDays / 31 < 12) return ['This Year', 'None']
+    return ['Other', 'None']
+}
 
 function Expenses() {
-    let [expenses, setExpenses] = useState([])
-    let [expensesTemp, setExpensesTemp] = useState([])
-    let [expensePopup, setExpensePopup] = useState(false)
-    let [currentExpense, setCurrentExpense] = useState([]);
-    // in one expense
-    let [totalExpenseOfAUserInOneExpense, setTotalExpenseOfAUserInOneExpense] = useState([])
+    const [expenses, setExpenses] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [expensePopup, setExpensePopup] = useState(false)
+    const [currentExpense, setCurrentExpense] = useState(null)
 
-    // all expenses
-    let [minimumtransactionOfUserInAllExpenses, setminimumtransactionOfUserInAllExpenses] = useState([])
+    const [balancesByExpense, setBalancesByExpense] = useState([])
 
-    let [amountOwedByUser, setAmountOwedByUser]=useState()
-    let [amountToBeRecievedByUserTotal, setAmountToBeRecievedByUserTotal]=useState()
-    let token = localStorage.getItem('token')
+    const [searchInput, setSearchInput] = useState('')
+    const [timeFilter, setTimeFilter] = useState('None')
 
-    let [searchInput, setSearchInput] = useState("")
-    let [timeFilter, setTimeFilter] = useState("None")
-    let timeFilterArray;
+    const token = localStorage.getItem('token')
 
-    let getAllExpenses = async () =>{
-        try{
-            let allexpensesfrombackend = await axios.get('http://localhost:3000/expenses/', {
-            headers:{
-                Authorization:`Bearer ${token}`
-            }
-        })
-
-        // console.log(allexpensesfrombackend.data.allexpensesGivenToFrontend)
-
-        setExpenses(allexpensesfrombackend.data.allexpensesGivenToFrontend)
-        setExpensesTemp(allexpensesfrombackend.data.allexpensesGivenToFrontend)
-        }catch(err){
-            console.log("error getting all expenses", err)
-        }
-    }
-
-    let minimumTransactionOfUserInAllExpneses = async () => {
-        try{
-            let minimumtransactionofallexpensesofuser = await axios.get('http://localhost:3000/expenses/minimumTransactionInAllExpenses', {
-                headers:{
-                    Authorization:`Bearer ${token}`
-                }
+    const getAllExpenses = async () => {
+        try {
+            const res = await axios.get('http://localhost:3000/expenses/', {
+                headers: { Authorization: `Bearer ${token}` },
             })
-
-            setTotalExpenseOfAUserInOneExpense(minimumtransactionofallexpensesofuser.data.amountToBePaidByCurrentUser)
-            setminimumtransactionOfUserInAllExpenses(minimumtransactionofallexpensesofuser.data.minimumtransactionOfUserInAllExpenses)
-
-            // setAmountOwedByUser(minimumtransactionofallexpensesofuser.data.amountOwedByUserTotal[0].totalAmount)
-            // setAmountToBeRecievedByUserTotal(minimumtransactionofallexpensesofuser.data.amountToBeRecievedByUserTotal[0].totalAmount)
-
-        }catch(err){
-            console.log("error getting minimum transaction of user in all expenses",err)
+            setExpenses(res.data.allexpensesGivenToFrontend || [])
+        } catch (err) {
+            console.log('error getting all expenses', err)
+        } finally {
+            setLoading(false)
         }
     }
 
-    let timeAgo = (timeGiven) =>{
-        let timeDiff = (new Date().getTime() - new Date(timeGiven).getTime())/(1000*60*60*24)
-        console.log(timeDiff)
-        
-        if(timeDiff < 1){
-            console.log((new Date().getTime() - new Date(timeGiven).getTime()))
-            timeFilterArray = ["Today", "This Month", "This Week", "This Year", "None"]
-                console.log(timeFilterArray)
-
-            return timeFilterArray
+    const minimumTransactionOfUserInAllExpneses = async () => {
+        try {
+            const res = await axios.get('http://localhost:3000/expenses/minimumTransactionInAllExpenses', {
+                headers: { Authorization: `Bearer ${token}` },
+            })
+            setBalancesByExpense(res.data.amountToBePaidByCurrentUser || [])
+        } catch (err) {
+            console.log('error getting minimum transaction of user in all expenses', err)
         }
-
-        if(timeDiff < 7){
-            console.log("2")
-                timeFilterArray = ["This Month", "This Week", "This Year", "None"]
-                console.log(timeFilterArray)
-
-            return timeFilterArray
-        }
-        if(timeDiff < 31){
-            console.log("3")
-                timeFilterArray = ["This Month", "This Year", "None"]
-                console.log(timeFilterArray)
-            return timeFilterArray
-        }
-        if(timeDiff/31 < 12){
-            console.log("3")
-                timeFilterArray = [ "This Year", "None"]
-                console.log(timeFilterArray)
-            return timeFilterArray
-        }
-        else if(timeDiff/31 > 12){
-            console.log("3")
-                timeFilterArray = ["Other", "None"]
-                console.log(timeFilterArray)
-            return timeFilterArray
-        }
-        
-
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         getAllExpenses()
         minimumTransactionOfUserInAllExpneses()
     }, [])
 
-  return (
-    <div>
+    // O(1) lookup instead of a nested .map() inside .map() per row
+    const balanceLookup = useMemo(() => {
+        const map = new Map()
+        balancesByExpense.forEach((entry) => map.set(entry._id, entry.finalResult?.amount ?? 0))
+        return map
+    }, [balancesByExpense])
 
-        <AnimatePresence>
-            {expensePopup && 
-           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}>
-           <div className='inset-0 fixed flex flex-col justify-center items-center h-screen w-screen backdrop-blur-sm bg-black/50'>
-                <div className='flex justify-between items-center w-[90%]'>
-                    <button className='opacity-0'><X/></button>
-                    
-                </div>
-                <div className='bg-[#eef3ff] border-2 border-[#1e2230]/20 min-h-95 w-[500px] rounded-xl pb-5'>
-                    <div className='ml-6 mt-6 flex flex-col justify-center items-start'>
-                        <div className='flex justify-between items-center w-[95%] mb-2'>
-                            <p className='text-[#1e4ed8] text-3xl font-bold mb-2'>{currentExpense.expenseName}</p>
-                            <button className='cursor-pointer text-white bg-[#1d4ed8] py-0.5 px-1.5 flex justify-center items-center gap-1 hover:bg-[#1d4ed8]/60' onClick={(e)=>{
-                            setExpensePopup(false)
-                            document.body.style.overflow = "auto"
-                            document.documentElement.style.overflow = "auto"
-                            }}>Close<X/></button>
-                        </div>
-                        <p className='text-gray-600 w-[80%]'>{currentExpense.expenseDescription}</p>
+    const visibleExpenses = useMemo(() => {
+        const query = searchInput.trim().toLowerCase()
+        return expenses.filter((expense) => {
+            const matchesSearch = expense.expenseName?.toLowerCase().includes(query)
+            const matchesTime = getTimeBuckets(expense.createdAt).includes(timeFilter)
+            return matchesSearch && matchesTime
+        })
+    }, [expenses, searchInput, timeFilter])
 
-                        <div className='mt-4'>
-                            <p><span className='text-[#2563eb] font-semibold text-[20px] mb-2'>Payer</span> : {currentExpense.paidBy}</p>
-                            <p><span className='text-[#2563eb] font-semibold text-[20px]'>Total Amount</span> : {currentExpense.totalAmount}</p>
-                        </div>
+    const openExpense = (expense) => {
+        setCurrentExpense(expense)
+        setExpensePopup(true)
+        document.body.style.overflow = 'hidden'
+        document.documentElement.style.overflow = 'hidden'
+    }
 
-                        <div className='mt-4'>
-                            <p><span className='text-[#2563eb] font-semibold text-[20px]'>Split Type</span> : {currentExpense.splitType}</p>
-                        </div>
+    const closeExpense = () => {
+        setExpensePopup(false)
+        document.body.style.overflow = 'auto'
+        document.documentElement.style.overflow = 'auto'
+    }
 
-                        <div className='mt-4 flex flex-col'>
-                            <p className='mb-2'><span className='text-[#2563eb] font-semibold text-[20px]'>Contributors : </span></p>
-                            <div className='flex gap-3'>
-                                <div className='flex flex-col'>
-                                {
-                                    Object.keys(currentExpense.percentages).map((user, index)=>{
-                                        return <p key={index}>{user}{" : "}</p>
-                                    })
-                                }
+    return (
+        <div>
+            <AnimatePresence>
+                {expensePopup && currentExpense && (
+                    <motion.div
+                        className="inset-0 fixed flex justify-center items-center h-screen w-screen backdrop-blur-sm bg-black/50 z-50"
+                        initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                        onClick={closeExpense}
+                    >
+                        <div
+                            className="bg-[#eef3ff] border border-[#1e2230]/10 min-h-95 w-[90%] max-w-[500px] rounded-xl shadow-xl pb-6"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex justify-between items-center px-6 pt-5 pb-3 border-b border-[#1d4ed8]/10">
+                                <p className="text-[#1e4ed8] text-2xl font-bold">{currentExpense.expenseName}</p>
+                                <button
+                                    className="cursor-pointer text-[#1d4ed8] hover:bg-[#1d4ed8]/10 rounded-full p-1.5 transition-colors"
+                                    onClick={closeExpense}
+                                    aria-label="Close"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="px-6 pt-4 flex flex-col items-start">
+                                {currentExpense.expenseDescription && (
+                                    <p className="text-gray-600 w-[95%]">{currentExpense.expenseDescription}</p>
+                                )}
+
+                                <div className="mt-4 space-y-1.5">
+                                    <p>
+                                        <span className="text-[#2563eb] font-semibold text-[18px]">Payer</span> :{' '}
+                                        {currentExpense.paidBy}
+                                    </p>
+                                    <p>
+                                        <span className="text-[#2563eb] font-semibold text-[18px]">Total Amount</span> :{' '}
+                                        {currentExpense.totalAmount}
+                                    </p>
+                                    <p>
+                                        <span className="text-[#2563eb] font-semibold text-[18px]">Split Type</span> :{' '}
+                                        {currentExpense.splitType}
+                                    </p>
                                 </div>
-                                
-                                <div className='flex flex-col'>
-                                {
 
-                                    // 
-                                    Object.values(currentExpense.percentages).map((amount, index)=>{
-                                        return <p key={index}>{
-                                            currentExpense.splitType === "Percentage" ? amount : 
-                                            (currentExpense.splitType === "Equal"? 
-                                                (currentExpense.totalAmount/currentExpense.contributorsLength).toFixed(2)  : (currentExpense.totalAmount/currentExpense.contributorsLength).toFixed(2))
-                                                
-                                        }{currentExpense.splitType === "Percentage" ? " %" : " /-"}</p>
-                                    })
-                                }
-
-                                
+                                <div className="mt-5 flex flex-col w-[95%]">
+                                    <p className="text-[#2563eb] font-semibold text-[18px] mb-2">Contributors</p>
+                                    <div className="flex flex-col gap-2">
+                                        {currentExpense.percentages &&
+                                            Object.entries(currentExpense.percentages).map(([user, value]) => {
+                                                const contributorsLength = currentExpense.contributorsLength || 1
+                                                const displayValue =
+                                                    currentExpense.splitType === 'Percentage'
+                                                        ? `${value} %`
+                                                        : `${(currentExpense.totalAmount / contributorsLength).toFixed(2)} /-`
+                                                return (
+                                                    <div key={user} className="flex justify-between items-center bg-white/60 rounded-lg px-3 py-1.5">
+                                                        <span className="text-gray-700">{user}</span>
+                                                        <span className="font-medium text-[#1e2230]">{displayValue}</span>
+                                                    </div>
+                                                )
+                                            })}
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <div className="flex justify-center items-center flex-col md:ml-60">
+                <div className="flex justify-between items-center mr-6 ml-6 my-6 w-[95%] mb-6">
+                    <p className="text-4xl font-bold text-[#1d4ed8]">Your Expenses!</p>
+                </div>
+
+                <div className="flex items-center justify-between w-130 bg-white rounded-full border py-2 px-3 gap-2 border-[#c5cdde] mt-5 mb-5 shadow-sm focus-within:border-[#1d4ed8] transition-colors">
+                    <div className="flex justify-start items-center w-[90%] gap-4">
+                        <Search className="text-gray-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search By Expense Name"
+                            className="outline-none text-md w-full bg-transparent"
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                        />
+                    </div>
+
+                    <X
+                        className={`cursor-pointer mr-2 text-gray-400 hover:text-[#1d4ed8] transition-colors ${
+                            searchInput.trim() === '' ? 'opacity-0' : 'opacity-100'
+                        }`}
+                        size={18}
+                        onClick={() => setSearchInput('')}
+                    />
+                </div>
+
+                <div className="flex justify-start w-[70vw] gap-5 my-3 flex-col mb-5">
+                    <div className="flex gap-10 items-center">
+                        <p className="text-gray-500">Filter By :</p>
+                        <div className="flex gap-8 flex-wrap">
+                            {TIME_FILTERS.map((filter) => (
+                                <p
+                                    key={filter}
+                                    className={`cursor-pointer pb-0.5 border-b-2 transition-colors ${
+                                        timeFilter === filter
+                                            ? 'text-[#1d4ed8] border-[#1d4ed8] font-medium'
+                                            : 'text-gray-600 border-transparent hover:text-[#1d4ed8]/70'
+                                    }`}
+                                    onClick={() => setTimeFilter(filter)}
+                                >
+                                    {filter}
+                                </p>
+                            ))}
+                        </div>
                     </div>
                 </div>
-            </div></motion.div>}
-           </AnimatePresence>
-        <div className='flex justify-center items-center flex-col ml-60 '>
 
-           
-
-        <div className='flex justify-between items-center mr-6 ml-6 my-6 w-[95%] mb-6'>
-            <p className='text-4xl font-bold text-[#1d4ed8]'>Your Expenses!</p>
-            <button className='opacity-0 bg-[#1d4ed8] px-2 py-0.5 hover:bg-blue-700/60 text-white'>Add Group</button>
-        </div>
-
-        <div className='flex items-center justify-between w-130 bg-gray-70 rounded-full border py-2 px-3 gap-2 border-[#c5cdde] mt-5 mb-5 transition '>
-              <div className='flex justify-start items-center w-[90%] gap-4'>
-                <Search/><input type="text" placeholder='Search By Expense Name' className={`outline-none text-md`} value={searchInput}  onChange={(e)=>{
-                setSearchInput(e.target.value)
-              }}/>
-              </div>
-
-              <X className={`cursor-pointer mr-2 ${searchInput.trim() == "" ? "opacity-0" : "opacity-100"}`} onClick={(e)=>{
-                setSearchInput("")
-              }}/>
-            </div>
-
-        <div className='flex justify-start w-[70vw] gap-5 my-3 flex-col mb-5'>
-            <div className='flex gap-10'>
-                <p>Filter By : </p>
-                <div className='flex gap-14'>
-                <p className={`cursor-pointer ${timeFilter=="None"?"text-[#1d4ed8]" : ""}`} onClick={(e)=>{setTimeFilter("None")}}>None</p>
-                <p className={`cursor-pointer ${timeFilter=="Today"?"text-[#1d4ed8]" : ""}`} onClick={(e)=>{setTimeFilter("Today")}}>Today</p>
-                <p className={`cursor-pointer ${timeFilter=="This Week"?"text-[#1d4ed8]" : ""}`}onClick={(e)=>setTimeFilter("This Week")}>This Week</p>
-                <p className={`cursor-pointer ${timeFilter=="This Month"?"text-[#1d4ed8]" : ""}`} onClick={(e)=>setTimeFilter("This Month")}>This Month</p>
-                <p className={`cursor-pointer ${timeFilter=="This Year"?"text-[#1d4ed8]" : ""}`} onClick={(e)=>setTimeFilter("This Year")}>This Year</p>
-                <p className={`cursor-pointer ${timeFilter=="Other"?"text-[#1d4ed8]" : ""}`} onClick={(e)=>setTimeFilter("Other")}>Other</p>
-                </div>
-            </div>
-            {/* <div className='flex gap-10'>
-                <p className='opacity-0'>Filter By : </p>
-                <div className='flex gap-14'>
-                <p className={`cursor-pointer ${owedFilter=="Owed"?"text-[#1d4ed8]" : ""}`} onClick={(e)=>{setOwedFilter("Owed")}}>Owed</p>
-                <p className={`cursor-pointer ${owedFilter=="To Recieve"?"text-[#1d4ed8]" : ""}`}onClick={(e)=>setOwedFilter("To Recieve")}>To Recieve</p>
-                </div>
-            </div> */}
-
-        </div>
-        <div className='border-2 border-[#1d4ed8]/20 rounded-xl pt-4 mb-10 mt-3'>
-
-        <div className='flex justify-evenly items-center border-b border-b-gray-300 pb-3 w-[70vw] text-gray-500 text-lg'>
-          <p className='w-[14vw] flex justify-center items-center'>Index</p>
-          <p className='w-[14vw] flex justify-center items-center'>Title</p>
-          <p className='w-[14vw] flex justify-center items-center'>Paid By</p>
-          <p className='w-[14vw] flex justify-center items-center'>Amount</p>
-          <p className='w-[14vw] flex justify-center items-center'>Your Contribution</p>
-        <button className='w-[14vw] flex justify-center items-center opacity-0'>View</button>
-            </div>
-
-            <div className=''>
-        {
-          expenses.filter((expense, index)=>{
-            // console.log(timeFilter != "None")
-            // console.log(timeFilter != "None" ? timeFilter == timeAgo(expense.createdAt) : true)
-            console.log(new Date().getTime() - new Date(expense.createdAt).getTime())
-            timeAgo(expense.createdAt)
-            return expense.expenseName.toLowerCase().includes(searchInput.trim().toLowerCase()) && timeFilterArray.includes(timeFilter)
-          }).map((expense, index)=>{
-                    // timeAgo(expense.createdAt)
-                    return <div className='flex justify-evenly items-center w-[70vw] border-b border-b-gray-300 py-7' key={index}>
-                      <p className='w-[14vw] flex justify-center items-center'>{index+1}</p>
-                      <p className='w-[14vw] flex justify-center items-center'>{expense.expenseName}</p>
-                      <p className='w-[14vw] flex justify-center items-center'>{expense.paidBy}</p>
-                      <p className='w-[14vw] flex justify-center items-center'>{expense.totalAmount}</p>
-
-
-                      {/* <p className={`w-[14vw] flex justify-center items-center text-2xl ${!totalExpenseOfAUserInOneExpense?.[index]?.finalResult.amount.toFixed(2).includes("-") ? "text-green-600" : "text-red-600"}`}>{totalExpenseOfAUserInOneExpense?.[index]?.finalResult.amount.toFixed(2) ? "" : "-"} {totalExpenseOfAUserInOneExpense?.[index]?.finalResult.amount.toFixed(2)}</p> */}
-
-                      <p 
-                      className={`w-[14vw] flex justify-center items-center text-2xl ${!totalExpenseOfAUserInOneExpense?.[index]?.finalResult?.amount.toFixed(2).includes("-") ? "text-green-600" : "text-red-600"}`}>
-                      {
-                        totalExpenseOfAUserInOneExpense.map((totalSum,index2)=>{
-                          if(totalExpenseOfAUserInOneExpense[index2]._id == expense._id){
-                            return <span className={`${totalExpenseOfAUserInOneExpense[index2].finalResult.amount > 0 ? "text-green-600" : "text-red-600"}`}>{totalExpenseOfAUserInOneExpense[index2].finalResult.amount ? totalExpenseOfAUserInOneExpense[index2].finalResult.amount.toFixed(2
-
-                            ) : "0"}</span>
-                          }
-                        })
-                      }
-                      </p>
-
-
-                        <button className='w-[14vw] flex justify-center items-center cursor-pointer' onClick={(e)=>{
-                            setCurrentExpense(expense)
-                            setExpensePopup(true)
-                            document.body.style.overflow = "hidden"
-                            document.documentElement.style.overflow = "hidden"
-                        }}>View</button>
+                <div className="border border-[#1d4ed8]/15 rounded-xl mb-10 mt-3 w-[70vw] overflow-hidden shadow-sm">
+                    <div className="flex justify-evenly items-center border-b border-b-gray-200 bg-gray-50 py-3 text-gray-500 text-sm uppercase tracking-wide">
+                        <p className="w-[14vw] flex justify-center items-center">Index</p>
+                        <p className="w-[14vw] flex justify-center items-center">Title</p>
+                        <p className="w-[14vw] flex justify-center items-center">Paid By</p>
+                        <p className="w-[14vw] flex justify-center items-center">Amount</p>
+                        <p className="w-[14vw] flex justify-center items-center">Your Contribution</p>
+                        <span className="w-[14vw] flex justify-center items-center" />
                     </div>
-                })
 
-        }
+                    {loading && <div className="py-12 text-center text-gray-400">Loading your expenses…</div>}
 
+                    {!loading && visibleExpenses.length === 0 && (
+                        <div className="py-12 text-center text-gray-400">
+                            {expenses.length === 0 ? 'No expenses yet.' : 'No expenses match your search or filter.'}
+                        </div>
+                    )}
 
+                    {!loading &&
+                        visibleExpenses.map((expense, index) => {
+                            const balance = balanceLookup.get(expense._id) ?? 0
+                            const isPositive = balance >= 0
+
+                            return (
+                                <div
+                                    className="flex justify-evenly items-center border-b border-b-gray-200 last:border-b-0 py-6 hover:bg-[#f5f8ff] transition-colors"
+                                    key={expense._id ?? index}
+                                >
+                                    <p className="w-[14vw] flex justify-center items-center text-gray-400">{index + 1}</p>
+                                    <p className="w-[14vw] flex justify-center items-center font-medium text-[#1e2230]">{expense.expenseName}</p>
+                                    <p className="w-[14vw] flex justify-center items-center text-gray-600">{expense.paidBy}</p>
+                                    <p className="w-[14vw] flex justify-center items-center text-gray-700">{Number(expense.totalAmount).toFixed(2)}</p>
+                                    <p className={`w-[14vw] flex justify-center items-center text-xl font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                                        {balance.toFixed(2)}
+                                    </p>
+                                    <button
+                                        className="w-[14vw] flex justify-center items-center cursor-pointer text-[#1d4ed8] hover:underline"
+                                        onClick={() => openExpense(expense)}
+                                    >
+                                        View
+                                    </button>
+                                </div>
+                            )
+                        })}
+                </div>
             </div>
-
         </div>
-    </div>
-    </div>
-  )
+    )
 }
 
 export default Expenses
