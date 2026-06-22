@@ -29,13 +29,9 @@ router.post('/create', auth, async (req, res)=>{
 })
 
 router.get('/', auth, async (req, res)=>{
-    console.log("1")
     try{
         let groupsList = await groupModels.find({"members":req.user.id}).populate("createdBy members", "username")
-        // console.log("sent groups list", groupsList)
         res.send(groupsList)
-        // console.log(groupsList)
-        // console.log(groupsList)
     }catch(err){
         console.log("error in getting post lists", err)
     }
@@ -69,7 +65,6 @@ router.post('/update/:groupId', auth, async (req, res)=>{
             { new : true}
         )
         res.send(updatedGroup)
-        console.log("updation successfull in backend")
     }
     
     catch(err){
@@ -83,7 +78,6 @@ router.post('/update/:groupId', auth, async (req, res)=>{
 })
 
 router.delete('/delete/:groupId', auth, async (req,res)=>{
-    // console.log("1")
     try{
         let groupToDelete = await groupModels.findOneAndDelete({_id : req.params.groupId})
 

@@ -78,7 +78,6 @@ router.get('/me', auth, async (req, res)=>{
 router.get('/', auth, async (req, res)=>{
     try{
         let allUsers = await userModels.find()
-        // console.log("done fetching all users")
         res.json(allUsers)
     }catch(err){
         console.log("error fetching users", err)
@@ -89,7 +88,6 @@ router.get('/:userId', auth, async (req, res)=>{
     try{
         let createdByInfo = await userModels.find({_id : req.params.userId})
         res.send(createdByInfo);
-        // console.log("done getting user info, groups")
     }catch(err){
         console.log("error getting created by info", err)
     }
